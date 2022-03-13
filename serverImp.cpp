@@ -81,7 +81,7 @@ int handleCommand(char *cmd, struct session *sess)
 		rc = 0;
 	} else if (strstr(cmd, "enumerate") != 0) {
 		getProcessList(processList);
-		if(send(sess->sock, cwd, strlen(processList), 0) == -1)
+		if(send(sess->sock, processList, strlen(processList), 0) == -1)
 			cout << "failed to send processList";
 		rc = 0;
 	} else {
