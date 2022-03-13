@@ -4,19 +4,30 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <iostream>
 using namespace std;
 
-static const char* socket_path = "/home/daniel/yonienv/share/code/cynet/cynet-socket";
-static const unsigned int s_send_len = 100;
+#define MSG_SIZE 100
 
-int main()
+int main(int argc, char *argv[])
 {
 	struct sockaddr_un remote;
-	char send_msg[s_send_len];
-	int data_len = 0, sock = 0;
+	char sendMsg[MSG_SIZE];
+	struct stat statBuffer;
+	int dataLen = 0, sock = 0;
+	char *sockPath;
 
-	memset(send_msg, 0, s_send_len*sizeof(char));
+	if (argc < 2)
+		cout << "usage: ./client <socket path>\n";
+
+	sockPath = argv[1];
+	if (stat(sockPath, &statBuffer)) {
+		cout << "file " << sockPath << " does not exist\n";
+		return -1;
+	}
+
+	memset(sendMsg, 0, MSG_SIZE * sizeof(char));
 
 	if( (sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		cout << "Failed creating socket\n";
@@ -24,10 +35,10 @@ int main()
 	}
 
 	remote.sun_family = AF_UNIX;
-	strcpy( remote.sun_path, socket_path );
-	data_len = strlen(remote.sun_path) + sizeof(remote.sun_family);
+	strcpy( remote.sun_path, sockPath );
+	dataLen = strlen(remote.sun_path) + sizeof(remote.sun_family);
 
-	if (connect(sock, (struct sockaddr*)&remote, data_len) == -1) {
+	if (connect(sock, (struct sockaddr*)&remote, dataLen) == -1) {
 		cout << "Failed to connect\n";
 		return 1;
 	}
@@ -35,14 +46,14 @@ int main()
 	cout << "Connected\n";
 
 	while(1) {
-		memset(send_msg, 0, s_send_len * sizeof(char));
+		memset(sendMsg, 0, MSG_SIZE * sizeof(char));
 		cout << "> ";
-		cin >> send_msg;
-		if( send(sock, send_msg, strlen(send_msg)*sizeof(char), 0 ) == -1 ) {
+		cin >> sendMsg;
+		if(send(sock, sendMsg, strlen(sendMsg) * sizeof(char), 0 ) == -1) {
 			cout << "failed send\n";
 		}
 
-		if (strstr(send_msg, "stop") != 0 || strstr(send_msg, "exit") != 0) {
+		if (strstr(sendMsg, "stop") != 0 || strstr(sendMsg, "exit") != 0) {
 			break;
 		}
 	}
