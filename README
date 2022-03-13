@@ -2,6 +2,7 @@
 building 
 -----------
 cmake .
+make
 touch <socket file>
 
 run server
