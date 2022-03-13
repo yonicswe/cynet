@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
 {
 	struct sockaddr_un remote;
 	char sendMsg[MSG_SIZE];
+	char rcvMsg[MSG_SIZE];
 	struct stat statBuffer;
 	int dataLen = 0, sock = 0;
 	char *sockPath;
@@ -56,6 +57,9 @@ int main(int argc, char *argv[])
 		if (strstr(sendMsg, "stop") != 0 || strstr(sendMsg, "exit") != 0) {
 			break;
 		}
+
+		if( recv(sock, rcvMsg, MSG_SIZE, 0) > 0 )
+			cout << rcvMsg << "\n";
 	}
 
 	close(sock);

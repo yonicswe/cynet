@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/types.h>
+#include <sys/resource.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <signal.h>
@@ -28,9 +29,39 @@ void handleSigAlarm(int sig)
 	cout << "exit\n";
 }
 
+void getMemorySize(char *memSize)
+{
+	struct rusage r_usage;
+	getrusage(RUSAGE_SELF,&r_usage);
+	sprintf(memSize, "%d", r_usage.ru_maxrss);
+}
+
+void getProcessList(char *data)
+{
+    FILE *pf;
+    char cmd[20];
+
+    sprintf(cmd, "ps aux");
+
+    pf = popen(cmd,"r");
+
+    fgets(data, 512 , pf);
+
+    pclose(pf);
+
+    write(1, data, 512);
+
+    return;
+}
+
+
 int handleCommand(char *cmd, struct session *sess)
 {
 	int rc = 0;
+	char memSize[50] = {0};
+	char cwd[100] = {0};
+	char processList[512] = {0};
+	char unknown[] = "unknown";
 
 	if(strstr(cmd, "stop") != 0) {
 		rc = 1;
@@ -39,13 +70,23 @@ int handleCommand(char *cmd, struct session *sess)
 		alarm(1);
 		rc = 1;
 	} else if (strstr(cmd, "status") != 0) {
+		getMemorySize(memSize);
+		if(send(sess->sock, memSize, strlen(memSize), 0) == -1)
+			cout << "failed to send mem size";
 		rc = 0;
 	} else if (strstr(cmd, "path") != 0) {
+		getcwd(cwd, sizeof(cwd));
+		if(send(sess->sock, cwd, strlen(cwd) * sizeof(char), 0) == -1)
+			cout << "failed to send working directory";
 		rc = 0;
 	} else if (strstr(cmd, "enumerate") != 0) {
+		getProcessList(processList);
+		if(send(sess->sock, cwd, strlen(processList), 0) == -1)
+			cout << "failed to send processList";
 		rc = 0;
 	} else {
-		cout << "unknown command\n";
+		if(send(sess->sock, unknown, strlen(unknown), 0) == -1)
+			cout << "failed to send unknown";
 	}
 
 	cout << sess->sock << ": " << cmd << "\n";
