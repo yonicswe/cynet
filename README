@@ -1,0 +1,13 @@
+
+building 
+-----------
+cmake .
+touch <socket file>
+
+run server
+-----------------
+./sever	<socket file> <max sessions>
+
+run client
+--------------
+./client.sh <socket file>
