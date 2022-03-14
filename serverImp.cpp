@@ -27,12 +27,12 @@ server::server(std::string _sockPath, int _maxSessions):sockPath(_sockPath),maxS
 	serverRunning = 0;
 };
 
-void handleSigAlarm(int sig)
+void server::handleSigAlarm(int sig)
 {
 	std::cout << "exit" << std::endl;
 }
 
-void getMemorySize(std::string &memSize)
+void server::getMemorySize(std::string &memSize)
 {
 	struct rusage r_usage;
 	getrusage(RUSAGE_SELF,&r_usage);
@@ -41,7 +41,7 @@ void getMemorySize(std::string &memSize)
 	memSize = m.str();
 }
 
-void getProcessList(std::string &data)
+void server::getProcessList(std::string &data)
 {
 	std::system("ps aux > proc_list.txt" );
 	//std::cout << std::ifstream("proc_list.txt").rdbuf();
@@ -49,7 +49,7 @@ void getProcessList(std::string &data)
 	return;
 }
 
-int handleCommand(char *cmd, struct session *sess)
+int server::handleCommand(char *cmd, struct session *sess)
 {
 	int rc = 0;
 
@@ -89,7 +89,7 @@ int handleCommand(char *cmd, struct session *sess)
 	return rc;
 }
 
-void *sessionHandler(void *sessParam)
+void *server::sessionHandler(void *sessParam)
 {
 	struct session *sess = (struct session*)sessParam;
 	int sessionSock = sess->sock;
