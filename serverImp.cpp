@@ -32,7 +32,7 @@ void server::handleSigAlarm(int sig)
 	std::cout << "exit" << std::endl;
 }
 
-void server::getMemorySize(std::string &memSize)
+void sysUtils::getMemorySize(std::string &memSize)
 {
 	struct rusage r_usage;
 	getrusage(RUSAGE_SELF,&r_usage);
@@ -41,7 +41,7 @@ void server::getMemorySize(std::string &memSize)
 	memSize = m.str();
 }
 
-void server::getProcessList(std::string &data)
+void sysUtils::getProcessList(std::string &data)
 {
 	std::system("ps aux > proc_list.txt" );
 	//std::cout << std::ifstream("proc_list.txt").rdbuf();
@@ -61,7 +61,7 @@ int server::handleCommand(char *cmd, struct session *sess)
 		rc = 1;
 	} else if (strstr(cmd, "status") != 0) {
 		std::string memSize;
-		getMemorySize(memSize);
+		sysUtils::getMemorySize(memSize);
 		if(send(sess->sock, memSize.c_str(), memSize.size(), 0) == -1)
 			std::cout << "failed to send mem size" << std::endl;
 		rc = 0;
@@ -73,7 +73,7 @@ int server::handleCommand(char *cmd, struct session *sess)
 		rc = 0;
 	} else if (strstr(cmd, "enumerate") != 0) {
 		std::string processList;
-		getProcessList(processList);
+		sysUtils::getProcessList(processList);
 		std::cout << processList;
 		if(send(sess->sock, processList.c_str(), processList.size(), 0) == -1)
 			std::cout << "failed to send processList" << std::endl;
