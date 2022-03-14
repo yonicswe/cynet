@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <signal.h>
+#include <vector>
 #include <iostream>
 
 #include "server.hpp"
@@ -125,9 +126,10 @@ int server::run()
 	int sessionCount = 0, sessionSock = 0, listenSock = 0, session, len = 0;
 	struct sigaction sa;
 	struct session sess = {};
+	std::vector<pthread_t>::iterator it;
 
-	if (maxSessions > MAX_SESSIONS) {
-		std::cout << "max sessions over " << MAX_SESSIONS << std::endl;
+	if (maxSessions > server::kMaxSessions) {
+		std::cout << "max sessions over " << server::kMaxSessions << std::endl;
 		return -1;
 	}
 
@@ -155,6 +157,7 @@ int server::run()
 	serverRunning = 1;
 	while ((sessionCount < maxSessions) && serverRunning) {
 		unsigned int sockLen = 0;
+		pthread_t tid;
 
 		std::cout << "Waiting..." << std::endl;
 		if((sessionSock = accept(listenSock, (struct sockaddr*)&remote, &sockLen)) == -1) {
@@ -165,20 +168,23 @@ int server::run()
 
 		sess.s = this;
 		sess.sock = sessionSock;
-		if (pthread_create(&sessions[sessionCount++], NULL, sessionHandler, &sess)) {
+		if (pthread_create(&tid, NULL, sessionHandler, &sess)) {
 			std::cout << "Failed to create session handler" << std::endl;
 			break;
 		}
+
+		sessions.push_back(tid);
+		sessionCount++;
 
 		std::cout << "Created " << sessionCount << "/" <<  maxSessions << "sessions" << std::endl;
 	}
 
 	if (!serverRunning)
-		for (session = 0; session < sessionCount; session++)
-			pthread_cancel(sessions[session]);
+		for (it = sessions.begin(); it != sessions.end(); it++)
+			pthread_cancel(*it);
 
-	for (session = 0; session < sessionCount; session++)
-		pthread_join(sessions[session], NULL);
+	for (it = sessions.begin(); it != sessions.end(); it++)
+		pthread_join(*it, NULL);
 
 	std::cout << "server exit" << std::endl;
 	return 0;

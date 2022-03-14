@@ -1,15 +1,16 @@
 #include <pthread.h>
-#define MAX_SESSIONS 10
+#include <vector>
 
 class server {
 
 	private:
 		char *sockPath;
 		int maxSessions;
-		pthread_t sessions[MAX_SESSIONS];
+		std::vector<pthread_t> sessions;
 		//int serverRunning;
 		//int handleCommand(char *cmd);
 		//void *sessionHandler(void *sessionSockParam);
+		static const size_t kMaxSessions = 10;
 
 	public:
 		server(char *_sockPath, int _maxSessions);
