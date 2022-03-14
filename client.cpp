@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <iostream>
+#include <cstring>
 
 #define MSG_SIZE 100
 
@@ -14,9 +15,9 @@ int main(int argc, char *argv[])
 	if (argc < 2)
 		std::cout << "usage: ./client <socket path>" << std::endl;
 
-	char *sockPath = argv[1];
+	std::string sockPath(argv[1]);
 	struct stat statBuffer;
-	if (stat(sockPath, &statBuffer)) {
+	if (stat(sockPath.c_str(), &statBuffer)) {
 		std::cout << "file " << sockPath << " does not exist" << std::endl;
 		return -1;
 	}
@@ -28,7 +29,7 @@ int main(int argc, char *argv[])
 	}
 
 	struct sockaddr_un remote = { .sun_family = AF_UNIX };
-	strcpy( remote.sun_path, sockPath );
+	strcpy( remote.sun_path, sockPath.c_str() );
 	int dataLen = strlen(remote.sun_path) + sizeof(remote.sun_family);
 
 	if (connect(sock, (struct sockaddr*)&remote, dataLen) == -1) {

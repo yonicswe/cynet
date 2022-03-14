@@ -10,6 +10,9 @@
 #include <signal.h>
 #include <vector>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 #include "server.hpp"
 
@@ -19,7 +22,7 @@ struct session {
 	int sock;
 };
 
-server::server(char *_sockPath, int _maxSessions):sockPath(_sockPath),maxSessions(_maxSessions)
+server::server(std::string _sockPath, int _maxSessions):sockPath(_sockPath),maxSessions(_maxSessions)
 {
 	serverRunning = 0;
 };
@@ -36,24 +39,13 @@ void getMemorySize(char *memSize)
 	sprintf(memSize, "%d", r_usage.ru_maxrss);
 }
 
-void getProcessList(char *data)
+void getProcessList(std::string &data)
 {
-    FILE *pf;
-    char cmd[20];
-
-    sprintf(cmd, "ps aux");
-
-    pf = popen(cmd,"r");
-
-    fgets(data, 512 , pf);
-
-    pclose(pf);
-
-    write(1, data, 512);
-
-    return;
+	std::system("ps aux > proc_list.txt" );
+	//std::cout << std::ifstream("proc_list.txt").rdbuf();
+	std::getline(std::ifstream("proc_list.txt"), data, '\0');
+	return;
 }
-
 
 int handleCommand(char *cmd, struct session *sess)
 {
@@ -78,9 +70,10 @@ int handleCommand(char *cmd, struct session *sess)
 			std::cout << "failed to send working directory" << std::endl;
 		rc = 0;
 	} else if (strstr(cmd, "enumerate") != 0) {
-		char processList[512] = {0};
+		std::string processList;
 		getProcessList(processList);
-		if(send(sess->sock, processList, strlen(processList), 0) == -1)
+		std::cout << processList;
+		if(send(sess->sock, processList.c_str(), processList.size(), 0) == -1)
 			std::cout << "failed to send processList" << std::endl;
 		rc = 0;
 	} else {
@@ -141,7 +134,7 @@ int server::run()
 	}
 
 	local.sun_family = AF_UNIX;
-	strcpy(local.sun_path, sockPath);
+	strcpy(local.sun_path, sockPath.c_str());
 	unlink(local.sun_path);
 	len = strlen(local.sun_path) + sizeof(local.sun_family);
 

@@ -1,10 +1,11 @@
 #include <pthread.h>
 #include <vector>
+#include <cstring>
 
 class server {
 
 	private:
-		char *sockPath;
+		std::string sockPath;
 		int maxSessions;
 		std::vector<pthread_t> sessions;
 		//int serverRunning;
@@ -13,7 +14,7 @@ class server {
 		static const size_t kMaxSessions = 10;
 
 	public:
-		server(char *_sockPath, int _maxSessions);
+		server(std::string _sockPath, int _maxSessions);
 		//~server();
 		int run();
 		int serverRunning;
