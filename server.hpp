@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <vector>
 #include <cstring>
+#include <map>
 
 class sysUtils {
 	public:
@@ -19,6 +20,8 @@ class server {
 		static void *sessionHandler(void *sessionSockParam);
 		static const size_t kMaxSessions = 10;
 		static void handleSigAlarm(int sig);
+		static std::map<std::string, int> commandTable;
+
 	public:
 		server(std::string _sockPath, int _maxSessions);
 		int run();

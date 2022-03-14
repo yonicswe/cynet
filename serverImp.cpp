@@ -51,40 +51,59 @@ void sysUtils::getProcessList(std::string &data)
 
 int server::handleCommand(char *cmd, struct session *sess)
 {
+	std::map<std::string, int>::iterator it;
 	int rc = 0;
 
-	if(strstr(cmd, "stop") != 0) {
-		rc = 1;
-	} else if (strstr(cmd, "exit") != 0) {
-		sess->s->serverRunning = 0;
-		alarm(1);
-		rc = 1;
-	} else if (strstr(cmd, "status") != 0) {
-		std::string memSize;
-		sysUtils::getMemorySize(memSize);
-		if(send(sess->sock, memSize.c_str(), memSize.size(), 0) == -1)
-			std::cout << "failed to send mem size" << std::endl;
-		rc = 0;
-	} else if (strstr(cmd, "path") != 0) {
-		char cwd[100] = {0};
-		getcwd(cwd, sizeof(cwd));
-		if(send(sess->sock, cwd, strlen(cwd) * sizeof(char), 0) == -1)
-			std::cout << "failed to send working directory" << std::endl;
-		rc = 0;
-	} else if (strstr(cmd, "enumerate") != 0) {
-		std::string processList;
-		sysUtils::getProcessList(processList);
-		std::cout << processList;
-		if(send(sess->sock, processList.c_str(), processList.size(), 0) == -1)
-			std::cout << "failed to send processList" << std::endl;
-		rc = 0;
+	std::cout << sess->sock << ": " << cmd << std::endl;
+
+	it = commandTable.find(std::string(cmd));
+	if (it != commandTable.end()) {
+		switch (it->second) {
+			case 1: // stop
+				rc = 1;
+				break;
+			case 2: // exit
+				sess->s->serverRunning = 0;
+				alarm(1);
+				rc = 1;
+				break;
+			case 3: // status
+				{
+					std::string memSize;
+					sysUtils::getMemorySize(memSize);
+					if(send(sess->sock, memSize.c_str(), memSize.size(), 0) == -1)
+						std::cout << "failed to send mem size" << std::endl;
+					rc = 0;
+				}
+				break;
+			case 4: // path
+				{
+					char cwd[100] = {0};
+					getcwd(cwd, sizeof(cwd));
+					if(send(sess->sock, cwd, strlen(cwd) * sizeof(char), 0) == -1)
+						std::cout << "failed to send working directory" << std::endl;
+					rc = 0;
+				}
+				break;
+			case 5: // enumerate
+				{
+					std::string processList;
+					sysUtils::getProcessList(processList);
+					std::cout << processList;
+					if(send(sess->sock, processList.c_str(), processList.size(), 0) == -1)
+						std::cout << "failed to send processList" << std::endl;
+					rc = 0;
+				}
+				break;
+			default: // unknown
+				std::cout << "Unknown" << std::endl;
+				break;
+		}
 	} else {
 		char unknown[] = "unknown";
 		if(send(sess->sock, unknown, strlen(unknown), 0) == -1)
 			std::cout << "failed to send unknown" << std::endl;
 	}
-
-	std::cout << sess->sock << ": " << cmd << std::endl;
 
 	return rc;
 }
@@ -115,6 +134,7 @@ void *server::sessionHandler(void *sessParam)
 	pthread_exit(NULL);
 }
 
+std::map<std::string, int> server::commandTable;
 int server::run()
 {
 	struct sockaddr_un local, remote;
@@ -126,6 +146,12 @@ int server::run()
 		std::cout << "max sessions over " << server::kMaxSessions << std::endl;
 		return -1;
 	}
+
+	commandTable[std::string("stop")] = 1;
+	commandTable[std::string("exit")] = 2;
+	commandTable[std::string("status")] = 3;
+	commandTable[std::string("path")] = 4;
+	commandTable[std::string("enumerate")] = 5;
 
 	sa.sa_handler = handleSigAlarm;
 	sigaction(SIGALRM , &sa, NULL);
