@@ -32,11 +32,13 @@ void handleSigAlarm(int sig)
 	std::cout << "exit" << std::endl;
 }
 
-void getMemorySize(char *memSize)
+void getMemorySize(std::string &memSize)
 {
 	struct rusage r_usage;
 	getrusage(RUSAGE_SELF,&r_usage);
-	sprintf(memSize, "%d", r_usage.ru_maxrss);
+	std::ostringstream m;
+	m << r_usage.ru_maxrss;
+	memSize = m.str();
 }
 
 void getProcessList(std::string &data)
@@ -58,9 +60,9 @@ int handleCommand(char *cmd, struct session *sess)
 		alarm(1);
 		rc = 1;
 	} else if (strstr(cmd, "status") != 0) {
-		char memSize[50] = {0};
+		std::string memSize;
 		getMemorySize(memSize);
-		if(send(sess->sock, memSize, strlen(memSize), 0) == -1)
+		if(send(sess->sock, memSize.c_str(), memSize.size(), 0) == -1)
 			std::cout << "failed to send mem size" << std::endl;
 		rc = 0;
 	} else if (strstr(cmd, "path") != 0) {
