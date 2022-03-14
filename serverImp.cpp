@@ -58,10 +58,6 @@ void getProcessList(char *data)
 int handleCommand(char *cmd, struct session *sess)
 {
 	int rc = 0;
-	char memSize[50] = {0};
-	char cwd[100] = {0};
-	char processList[512] = {0};
-	char unknown[] = "unknown";
 
 	if(strstr(cmd, "stop") != 0) {
 		rc = 1;
@@ -70,21 +66,25 @@ int handleCommand(char *cmd, struct session *sess)
 		alarm(1);
 		rc = 1;
 	} else if (strstr(cmd, "status") != 0) {
+		char memSize[50] = {0};
 		getMemorySize(memSize);
 		if(send(sess->sock, memSize, strlen(memSize), 0) == -1)
 			std::cout << "failed to send mem size" << std::endl;
 		rc = 0;
 	} else if (strstr(cmd, "path") != 0) {
+		char cwd[100] = {0};
 		getcwd(cwd, sizeof(cwd));
 		if(send(sess->sock, cwd, strlen(cwd) * sizeof(char), 0) == -1)
 			std::cout << "failed to send working directory" << std::endl;
 		rc = 0;
 	} else if (strstr(cmd, "enumerate") != 0) {
+		char processList[512] = {0};
 		getProcessList(processList);
 		if(send(sess->sock, processList, strlen(processList), 0) == -1)
 			std::cout << "failed to send processList" << std::endl;
 		rc = 0;
 	} else {
+		char unknown[] = "unknown";
 		if(send(sess->sock, unknown, strlen(unknown), 0) == -1)
 			std::cout << "failed to send unknown" << std::endl;
 	}
@@ -126,7 +126,6 @@ int server::run()
 	int sessionCount = 0, sessionSock = 0, listenSock = 0, session, len = 0;
 	struct sigaction sa;
 	struct session sess = {};
-	std::vector<pthread_t>::iterator it;
 
 	if (maxSessions > server::kMaxSessions) {
 		std::cout << "max sessions over " << server::kMaxSessions << std::endl;
@@ -179,6 +178,7 @@ int server::run()
 		std::cout << "Created " << sessionCount << "/" <<  maxSessions << "sessions" << std::endl;
 	}
 
+	std::vector<pthread_t>::iterator it;
 	if (!serverRunning)
 		for (it = sessions.begin(); it != sessions.end(); it++)
 			pthread_cancel(*it);

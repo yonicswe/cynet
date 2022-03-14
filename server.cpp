@@ -5,16 +5,14 @@
 
 int main(int argc, char *argv[])
 {
-	char *sockPath;
-	int maxSessions;
-	struct stat statBuffer;
 
 	if (argc < 2)
 		std::cout << "usage: ./server <socket path> <max sessions>" << std::endl;
 
-	sockPath = argv[1];
-	maxSessions = atoi(argv[2]);
+	char *sockPath = argv[1];
+	int maxSessions = atoi(argv[2]);
 
+	struct stat statBuffer;
 	if (stat(sockPath, &statBuffer)) {
 		std::cout << "file " << sockPath << " does not exist" << std::endl;
 		return -1;
