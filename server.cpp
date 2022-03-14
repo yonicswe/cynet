@@ -2,7 +2,6 @@
 #include <sys/stat.h>
 #include <iostream>
 #include "server.hpp"
-using namespace std;
 
 int main(int argc, char *argv[])
 {
@@ -11,13 +10,13 @@ int main(int argc, char *argv[])
 	struct stat statBuffer;
 
 	if (argc < 2)
-		cout << "usage: ./server <socket path> <max sessions>\n";
+		std::cout << "usage: ./server <socket path> <max sessions>" << std::endl;
 
 	sockPath = argv[1];
 	maxSessions = atoi(argv[2]);
 
 	if (stat(sockPath, &statBuffer)) {
-		cout << "file " << sockPath << " does not exist\n";
+		std::cout << "file " << sockPath << " does not exist" << std::endl;
 		return -1;
 	}
 

@@ -6,7 +6,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <iostream>
-using namespace std;
 
 #define MSG_SIZE 100
 
@@ -20,18 +19,18 @@ int main(int argc, char *argv[])
 	char *sockPath;
 
 	if (argc < 2)
-		cout << "usage: ./client <socket path>\n";
+		std::cout << "usage: ./client <socket path>" << std::endl;
 
 	sockPath = argv[1];
 	if (stat(sockPath, &statBuffer)) {
-		cout << "file " << sockPath << " does not exist\n";
+		std::cout << "file " << sockPath << " does not exist" << std::endl;
 		return -1;
 	}
 
 	memset(sendMsg, 0, MSG_SIZE * sizeof(char));
 
 	if( (sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-		cout << "Failed creating socket\n";
+		std::cout << "Failed creating socket" << std::endl;
 		return 1;
 	}
 
@@ -40,18 +39,18 @@ int main(int argc, char *argv[])
 	dataLen = strlen(remote.sun_path) + sizeof(remote.sun_family);
 
 	if (connect(sock, (struct sockaddr*)&remote, dataLen) == -1) {
-		cout << "Failed to connect\n";
+		std::cout << "Failed to connect" << std::endl;
 		return 1;
 	}
 
-	cout << "Connected\n";
+	std::cout << "Connected" << std::endl;
 
 	while(1) {
 		memset(sendMsg, 0, MSG_SIZE * sizeof(char));
-		cout << "> ";
-		cin >> sendMsg;
+		std::cout << "> ";
+		std::cin >> sendMsg;
 		if(send(sock, sendMsg, strlen(sendMsg) * sizeof(char), 0 ) == -1) {
-			cout << "failed send\n";
+			std::cout << "failed send" << std::endl;
 		}
 
 		if (strstr(sendMsg, "stop") != 0 || strstr(sendMsg, "exit") != 0) {
@@ -59,11 +58,11 @@ int main(int argc, char *argv[])
 		}
 
 		if( recv(sock, rcvMsg, MSG_SIZE, 0) > 0 )
-			cout << rcvMsg << "\n";
+			std::cout << rcvMsg << std::endl;
 	}
 
 	close(sock);
-	cout << "Session " << sock << "closed\n";
+	std::cout << "Session " << sock << "closed" << std::endl;
 
 	return 0;
 }

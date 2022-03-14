@@ -12,7 +12,6 @@
 
 #include "server.hpp"
 
-using namespace std;
 
 struct session {
 	server *s;
@@ -26,7 +25,7 @@ server::server(char *_sockPath, int _maxSessions):sockPath(_sockPath),maxSession
 
 void handleSigAlarm(int sig)
 {
-	cout << "exit\n";
+	std::cout << "exit" << std::endl;
 }
 
 void getMemorySize(char *memSize)
@@ -72,24 +71,24 @@ int handleCommand(char *cmd, struct session *sess)
 	} else if (strstr(cmd, "status") != 0) {
 		getMemorySize(memSize);
 		if(send(sess->sock, memSize, strlen(memSize), 0) == -1)
-			cout << "failed to send mem size";
+			std::cout << "failed to send mem size" << std::endl;
 		rc = 0;
 	} else if (strstr(cmd, "path") != 0) {
 		getcwd(cwd, sizeof(cwd));
 		if(send(sess->sock, cwd, strlen(cwd) * sizeof(char), 0) == -1)
-			cout << "failed to send working directory";
+			std::cout << "failed to send working directory" << std::endl;
 		rc = 0;
 	} else if (strstr(cmd, "enumerate") != 0) {
 		getProcessList(processList);
 		if(send(sess->sock, processList, strlen(processList), 0) == -1)
-			cout << "failed to send processList";
+			std::cout << "failed to send processList" << std::endl;
 		rc = 0;
 	} else {
 		if(send(sess->sock, unknown, strlen(unknown), 0) == -1)
-			cout << "failed to send unknown";
+			std::cout << "failed to send unknown" << std::endl;
 	}
 
-	cout << sess->sock << ": " << cmd << "\n";
+	std::cout << sess->sock << ": " << cmd << std::endl;
 
 	return rc;
 }
@@ -101,7 +100,7 @@ void *sessionHandler(void *sessParam)
 	int dataSize = 0;
 	char rcvBuf[100];
 
-	cout << "Session " << sessionSock << " connected\n";
+	std::cout << "Session " << sessionSock << " connected" << std::endl;
 
 	do {
 		memset(rcvBuf, 0, 100*sizeof(char));
@@ -116,7 +115,7 @@ void *sessionHandler(void *sessParam)
 	} while ((dataSize > 0) && sess->s->serverRunning);
 
 	close(sessionSock);
-	cout << "Session " << sessionSock << " closed\n";
+	std::cout << "Session " << sessionSock << " closed" << std::endl;
 	pthread_exit(NULL);
 }
 
@@ -128,7 +127,7 @@ int server::run()
 	struct session sess = {};
 
 	if (maxSessions > MAX_SESSIONS) {
-		cout << "max sessions over " << MAX_SESSIONS << "\n";
+		std::cout << "max sessions over " << MAX_SESSIONS << std::endl;
 		return -1;
 	}
 
@@ -136,7 +135,7 @@ int server::run()
 	sigaction(SIGALRM , &sa, NULL);
 	listenSock = socket(AF_UNIX, SOCK_STREAM, 0);
 	if( listenSock == -1) {
-		cout << "Failed creating socket\n";
+		std::cout << "Failed creating socket" << std::endl;
 		return -1;
 	}
 
@@ -146,32 +145,32 @@ int server::run()
 	len = strlen(local.sun_path) + sizeof(local.sun_family);
 
 	if(bind(listenSock, (struct sockaddr*)&local, len) != 0) {
-		cout << "Failed bind\n";
+		std::cout << "Failed bind" << std::endl;
 		return -1;
 	}
 
 	if (listen(listenSock, maxSessions) != 0)
-		cout << "Failed listen\n";
+		std::cout << "Failed listen" << std::endl;
 
 	serverRunning = 1;
 	while ((sessionCount < maxSessions) && serverRunning) {
 		unsigned int sockLen = 0;
 
-		cout << "Waiting...\n";
+		std::cout << "Waiting..." << std::endl;
 		if((sessionSock = accept(listenSock, (struct sockaddr*)&remote, &sockLen)) == -1) {
 			if (serverRunning)
-				cout << "Failed accept\n";
+				std::cout << "Failed accept" << std::endl;
 			break;
 		}
 
 		sess.s = this;
 		sess.sock = sessionSock;
 		if (pthread_create(&sessions[sessionCount++], NULL, sessionHandler, &sess)) {
-			cout << "Failed to create session handler\n";
+			std::cout << "Failed to create session handler" << std::endl;
 			break;
 		}
 
-		cout << "Created " << sessionCount << "/" <<  maxSessions << "sessions\n";
+		std::cout << "Created " << sessionCount << "/" <<  maxSessions << "sessions" << std::endl;
 	}
 
 	if (!serverRunning)
@@ -181,7 +180,7 @@ int server::run()
 	for (session = 0; session < sessionCount; session++)
 		pthread_join(sessions[session], NULL);
 
-	cout << "server exit\n";
+	std::cout << "server exit" << std::endl;
 	return 0;
 }
 
