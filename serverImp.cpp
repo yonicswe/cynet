@@ -33,12 +33,11 @@ void server::handleSigAlarm(int sig)
 
 int server::handleCommand(char *cmd, struct session *sess)
 {
-	std::map<std::string, int>::iterator it;
 	int rc = 0;
 
 	std::cout << sess->sock << ": " << cmd << std::endl;
 
-	it = commandTable.find(std::string(cmd));
+	auto it = commandTable.find(std::string(cmd));
 	if (it != commandTable.end()) {
 		switch (it->second) {
 			case 1: // stop
@@ -179,12 +178,11 @@ int server::run()
 		std::cout << "Created " << sessionCount << "/" <<  maxSessions << "sessions" << std::endl;
 	}
 
-	std::vector<pthread_t>::iterator it;
 	if (!serverRunning)
-		for (it = sessions.begin(); it != sessions.end(); it++)
+		for (auto it = sessions.begin(); it != sessions.end(); it++)
 			pthread_cancel(*it);
 
-	for (it = sessions.begin(); it != sessions.end(); it++)
+	for (auto it = sessions.begin(); it != sessions.end(); it++)
 		pthread_join(*it, NULL);
 
 	std::cout << "server exit" << std::endl;
