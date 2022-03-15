@@ -12,6 +12,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <thread>
 
 #include "server.hpp"
 
@@ -87,7 +88,7 @@ int server::handleCommand(char *cmd, struct session *sess)
 	return rc;
 }
 
-void *server::sessionHandler(void *sessParam)
+void server::sessionHandler(void *sessParam)
 {
 	struct session *sess = (struct session*)sessParam;
 	int sessionSock = sess->sock;
@@ -110,7 +111,6 @@ void *server::sessionHandler(void *sessParam)
 
 	close(sessionSock);
 	std::cout << "Session " << sessionSock << " closed" << std::endl;
-	pthread_exit(NULL);
 }
 
 std::map<std::string, int> server::commandTable;
@@ -156,7 +156,6 @@ int server::run()
 	serverRunning = 1;
 	while ((sessionCount < maxSessions) && serverRunning) {
 		unsigned int sockLen = 0;
-		pthread_t tid;
 
 		std::cout << "Waiting..." << std::endl;
 		if((sessionSock = accept(listenSock, (struct sockaddr*)&remote, &sockLen)) == -1) {
@@ -167,12 +166,7 @@ int server::run()
 
 		sess.s = this;
 		sess.sock = sessionSock;
-		if (pthread_create(&tid, NULL, sessionHandler, &sess)) {
-			std::cout << "Failed to create session handler" << std::endl;
-			break;
-		}
-
-		sessions.push_back(tid);
+		sessions.push_back(std::thread(sessionHandler,  &sess));
 		sessionCount++;
 
 		std::cout << "Created " << sessionCount << "/" <<  maxSessions << "sessions" << std::endl;
@@ -180,10 +174,10 @@ int server::run()
 
 	if (!serverRunning)
 		for (auto it = sessions.begin(); it != sessions.end(); it++)
-			pthread_cancel(*it);
+			pthread_cancel(it->native_handle());
 
 	for (auto it = sessions.begin(); it != sessions.end(); it++)
-		pthread_join(*it, NULL);
+		it->join();
 
 	std::cout << "server exit" << std::endl;
 	return 0;
