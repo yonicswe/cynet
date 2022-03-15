@@ -51,8 +51,7 @@ int server::handleCommand(char *cmd, struct session *sess)
 				break;
 			case 3: // status
 				{
-					std::string memSize;
-					sysUtils::getMemorySize(memSize);
+					std::string memSize(sysUtils::getMemorySize());
 					if(send(sess->sock, memSize.c_str(), memSize.size(), 0) == -1)
 						std::cout << "failed to send mem size" << std::endl;
 					rc = 0;
@@ -69,8 +68,7 @@ int server::handleCommand(char *cmd, struct session *sess)
 				break;
 			case 5: // enumerate
 				{
-					std::string processList;
-					sysUtils::getProcessList(processList);
+					std::string processList(sysUtils::getProcessList());
 					std::cout << processList;
 					if(send(sess->sock, processList.c_str(), processList.size(), 0) == -1)
 						std::cout << "failed to send processList" << std::endl;

@@ -3,8 +3,8 @@
 
 class sysUtils {
 	public:
-		static void getMemorySize(std::string &memSize);
-		static void getProcessList(std::string &data);
+		static std::string getMemorySize();
+		static std::string getProcessList();
 };
 
 #endif//__UTILS_HPP__
