@@ -1,13 +1,10 @@
+#ifndef __SERVER_HPP__
+#define __SERVER_HPP__
 #include <pthread.h>
 #include <vector>
 #include <cstring>
 #include <map>
-
-class sysUtils {
-	public:
-		static void getMemorySize(std::string &memSize);
-		static void getProcessList(std::string &data);
-};
+#include "utils.hpp"
 
 class server {
 
@@ -26,4 +23,4 @@ class server {
 		server(std::string _sockPath, int _maxSessions);
 		int run();
 };
-
+#endif // __SERVER_HPP__
